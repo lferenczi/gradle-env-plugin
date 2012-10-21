@@ -51,7 +51,7 @@ One example of the possible uses is to create dynamic tasks for each environment
 	environment.forEach { name, config ->
 		def envName = name.replace(":", "-")
 		
-		task "jar-${name}"(type: Jar) {
+		task "jar-${envName}"(type: Jar) {
 			from: mydir
 			expand config.toProperties()
 		}
