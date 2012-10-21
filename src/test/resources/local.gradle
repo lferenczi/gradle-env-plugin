@@ -1,0 +1,3 @@
+dbDriver = "local.dbdriver"
+dbShowSql = false
+newprop = 'newprop'

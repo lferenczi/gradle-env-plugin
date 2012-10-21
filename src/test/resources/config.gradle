@@ -1,0 +1,38 @@
+dbUrl = 'jdbc:mysql://localhost:3306'
+dbDriver = "com.mysql.jdbc.Driver"
+dbShowSql = true
+
+env {
+	test {
+		dbUrl = 'jdbc:mysql://test.env.mysql.url:3306'
+		dbShowSql = true
+
+		env {
+			subone {
+				dbSchema = 'subone_schema'
+				dbUser = 'subone_user'
+				dbPass = 'subone_pass'
+				
+				env {
+					deepsub {
+						dbSchema = 'deepsub'
+						dbDriver = 'deepdriver'
+					}
+				}
+			}
+			subtwo {
+				dbSchema = 'subtwo_schema'
+				dbUser = 'subtwo_user'
+				dbPass = 'subtwo_pass'
+			}
+		}
+	}
+	uat {
+		dbUrl = 'jdbc:mysql://uat.env.mysql'
+		dbShowSql = "false"	
+	}
+	prod {
+		dbUrl = 'jdbc:mysql://prod.env.mysql.url:3306'
+		dbShowSql = false
+	}
+}
