@@ -92,6 +92,17 @@ Configuration for the `test` environment is the following:
 	dbSchema = 'myschema'			// default
 	dbType = 'mysql'				// default
 
+## Local override
+
+To allow developer specific settings to the configuration without adding them to the main configuration file the developer can create a `local.gradle` file. Certain limitations are applied when using this file:
+
+- Only the `getLocal()` method will read this file
+- No environment specification is allowed
+- The file specifies overrides over the default configuration (i.e.: only change what you need, everything else will be default)
+- The `getLocal()` method will only override for the default environment
+
+The recommended usage is to create a `local.gradle.sample` file within the project and tell developers to copy and rename this file to `local.gradle` to specify their own settings. The resulting `local.gradle` files shouldn't be checked in to the version control system.
+
 ## API
 
 To identify a specific environment in the tree the plugin use colon as separator character when specifying nested environments. For example the `prod:prod1` string identifies the `prod1` within `prod` environment.
@@ -103,6 +114,11 @@ Returns the default configuration as a `ConfigObject`
 - `environment.get(name)`
 
 Returns the configuration as a `ConfigObject` for a given environment name
+
+- `environment.getLocal(name)`
+
+Returns the configuration as a `ConfigObject` for a given environment name. 
+If no environment specified (using the default) and a `local.gradle` configuration file is present it will be merged with the defaults and returned. This allows developers to use their own settings on top of the defaults.
 
 - `environment.forEach(closure)`
 
