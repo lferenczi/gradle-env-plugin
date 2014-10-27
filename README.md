@@ -6,6 +6,18 @@ In the groovy world `ConfigSlurper` provides an excellent way of configuring a s
 
 This two missing feature lead to the implementation of this plugin.
 
+## Release notes
+
+### Version 1.2
+
+- Hierarchical configuration
+
+The plugin now has the ability to merge configuration with parent project's configuration (in a multi-project build). 
+This way configuration can be split to multiple config.gradle files, one for each sub-project. Merging is recursive, 
+it's allowed to have many levels of sub-projects.
+
+- FIX: config file path is now more precise
+
 ## Usage
 
 Create a file called `config.gradle` in your project root:

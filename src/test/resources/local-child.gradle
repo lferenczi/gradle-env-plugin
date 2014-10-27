@@ -1,0 +1,2 @@
+dbDriver = "local.dbdriver.child"
+newprop = 'newprop-child'

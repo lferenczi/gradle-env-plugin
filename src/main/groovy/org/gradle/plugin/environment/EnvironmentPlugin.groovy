@@ -1,8 +1,10 @@
 package org.gradle.plugin.environment
 
-import org.gradle.api.*;
-
-import groovy.util.ConfigSlurper
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * Plugin to handle multi-dimensional environment mappings
@@ -11,9 +13,11 @@ import groovy.util.ConfigSlurper
  */
 class EnvironmentPlugin implements Plugin<Project> {
 
+    public static final PLUGIN_NAME = "environment";
+
 	@Override
 	public void apply(Project project) {
-		project.extensions.create("environment", EnvironmentFactory)
+		project.extensions.create(PLUGIN_NAME, EnvironmentFactory, project)
 	}
 }
 
@@ -21,17 +25,93 @@ class EnvironmentPlugin implements Plugin<Project> {
  * Factory for generating the initial structure
  */
 class EnvironmentFactory {
-	def configFile = 'config.gradle'
-	def localConfigFile = 'local.gradle'
+    Logger log = LoggerFactory.getLogger('environment')
+
+	def configFile = project.projectDir.getPath() + '/config.gradle'
+	def localConfigFile = project.projectDir.getPath() + '/local.gradle'
 	def defaultEnv = 'dev'
 	def defaultEnvKey = 'env'
 	def base = null
 	def local = null
-	
+
+    private Project project = null
+    private ConfigObject raw = null
+    private ConfigObject rawLocal = null
+
+    public EnvironmentFactory(Project project) {
+        this.project = project
+        log.info("Environment: initializing project: {}", project.name)
+    }
+
+    /**
+     * Loads config.gradle and returns the raw ConfigObject
+     *
+     * Parsing of config is recursive, returned config is merged with parent project's configuration
+     *
+     * @return Raw ConfigObject
+     */
+    protected getRawConfig() {
+        if (raw == null) {
+            File configFile = new File(configFile)
+            ConfigObject selfConfig = new ConfigObject()
+            if (configFile.exists()) {
+                selfConfig = new ConfigSlurper().parse(configFile.toURI().toURL())
+                log.info("Environment: project [{}] config file read at: {}", project.name, configFile.toURI().toURL())
+            } else {
+                log.info("Environment: no config.gradle specified for project: {}, looked at path: {}", project.name, configFile.toURI().toURL())
+            }
+
+            ConfigObject parentConfig = new ConfigObject()
+            if (project != project.getRootProject()) {
+                EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
+                if (parentEF != null) {
+                    log.info("Environment: found parent configuration, merging")
+                    parentConfig.putAll(parentEF.getRawConfig())
+                }
+            }
+            raw = new ConfigObject()
+            raw.putAll(parentConfig.merge(selfConfig))
+        }
+        raw.clone()
+    }
+
+    /**
+     * Loads local.gradle and returns the raw ConfigObject
+     *
+     * Parsing of the local config is recursive, returned local config is merged with parent project's configuration
+     *
+     * @return Raw local ConfigObject
+     */
+    protected getLocalRawConfig() {
+        if (rawLocal == null) {
+            File localConfigFile = new File(localConfigFile)
+            ConfigObject selfConfig = new ConfigObject()
+            if (localConfigFile.exists()) {
+                selfConfig = new ConfigSlurper().parse(localConfigFile.toURI().toURL())
+                log.info("Environment: project [{}] local config file read at: {}", project.name, localConfigFile.toURI().toURL())
+            } else {
+                log.info("Environment: no local.gradle specified for project: {}", project.name)
+            }
+
+            ConfigObject parentConfig = new ConfigObject()
+            if (project != project.getRootProject()) {
+                EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
+                if (parentEF != null) {
+                    log.info("Environment: found parent configuration, merging")
+                    parentConfig.putAll(parentEF.getLocalRawConfig())
+                }
+            }
+            rawLocal = new ConfigObject()
+            rawLocal.putAll(parentConfig.merge(selfConfig))
+        }
+        rawLocal.clone()
+    }
+
+
 	protected getBase() {
 		if (base == null) {
 			try {
-				def raw = new ConfigSlurper().parse(new File(configFile).toURL())
+				def raw = getRawConfig()
 				this.base = init(new ConfigObject(), raw)
 			}
 			catch (Exception e) {
@@ -84,8 +164,7 @@ class EnvironmentFactory {
 
 	public getLocal(name=defaultEnv) {
 		try {
-			def File l = new File(localConfigFile)
-			def local = (l.exists()) ? new ConfigSlurper().parse(l.toURL()) : new ConfigObject();
+            def local = getLocalRawConfig()
 			def c = new ConfigObject()
 			c.merge(get(name))
 			if (name==defaultEnv) {

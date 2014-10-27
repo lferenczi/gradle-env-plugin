@@ -1,0 +1,20 @@
+dbUrl = 'jdbc:mysql://child-localhost:3306'
+dbShowSql = false
+
+env {
+	test {
+		env {
+			subone {
+				dbSchema = 'subone_schema_child'
+				env {
+					deepsub {
+						dbSchema = 'deepsub_child'
+					}
+				}
+			}
+		}
+	}
+	prod {
+		dbUrl = 'jdbc:mysql://child-prod.env.mysql.url:3306'
+	}
+}

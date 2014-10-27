@@ -6,5 +6,5 @@ project.group = "org.gradle.api.plugins"
 
 dependencies {
     compile gradleApi()
-    groovy localGroovy()
+    compile localGroovy()
 }
