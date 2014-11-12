@@ -35,8 +35,6 @@ class EnvironmentFactory {
 	def local = null
 
     private Project project = null
-    private ConfigObject raw = null
-    private ConfigObject rawLocal = null
 
     public EnvironmentFactory(Project project) {
         this.project = project
@@ -51,28 +49,24 @@ class EnvironmentFactory {
      * @return Raw ConfigObject
      */
     protected getRawConfig() {
-        if (raw == null) {
-            File configFile = new File(configFile)
-            ConfigObject selfConfig = new ConfigObject()
-            if (configFile.exists()) {
-                selfConfig = new ConfigSlurper().parse(configFile.toURI().toURL())
-                log.info("Environment: project [{}] config file read at: {}", project.name, configFile.toURI().toURL())
-            } else {
-                log.info("Environment: no config.gradle specified for project: {}, looked at path: {}", project.name, configFile.toURI().toURL())
-            }
+		File configFile = new File(configFile)
+		ConfigObject selfConfig = new ConfigObject()
+		if (configFile.exists()) {
+			selfConfig = new ConfigSlurper().parse(configFile.toURI().toURL())
+			log.info("Environment: project [{}] config file read at: {}", project.name, configFile.toURI().toURL())
+		} else {
+			log.info("Environment: no config.gradle specified for project: {}, looked at path: {}", project.name, configFile.toURI().toURL())
+		}
 
-            ConfigObject parentConfig = new ConfigObject()
-            if (project != project.getRootProject()) {
-                EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
-                if (parentEF != null) {
-                    log.info("Environment: found parent configuration, merging")
-                    parentConfig.putAll(parentEF.getRawConfig())
-                }
-            }
-            raw = new ConfigObject()
-            raw.putAll(parentConfig.merge(selfConfig))
-        }
-        raw.clone()
+		ConfigObject parentConfig = new ConfigObject()
+		if (project != project.getRootProject()) {
+			EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
+			if (parentEF != null) {
+				log.info("Environment: found parent configuration, merging")
+				parentConfig.putAll(parentEF.getRawConfig())
+			}
+		}
+		parentConfig.merge(selfConfig)
     }
 
     /**
@@ -83,28 +77,24 @@ class EnvironmentFactory {
      * @return Raw local ConfigObject
      */
     protected getLocalRawConfig() {
-        if (rawLocal == null) {
-            File localConfigFile = new File(localConfigFile)
-            ConfigObject selfConfig = new ConfigObject()
-            if (localConfigFile.exists()) {
-                selfConfig = new ConfigSlurper().parse(localConfigFile.toURI().toURL())
-                log.info("Environment: project [{}] local config file read at: {}", project.name, localConfigFile.toURI().toURL())
-            } else {
-                log.info("Environment: no local.gradle specified for project: {}", project.name)
-            }
+		File localConfigFile = new File(localConfigFile)
+		ConfigObject selfConfig = new ConfigObject()
+		if (localConfigFile.exists()) {
+			selfConfig = new ConfigSlurper().parse(localConfigFile.toURI().toURL())
+			log.info("Environment: project [{}] local config file read at: {}", project.name, localConfigFile.toURI().toURL())
+		} else {
+			log.info("Environment: no local.gradle specified for project: {}", project.name)
+		}
 
-            ConfigObject parentConfig = new ConfigObject()
-            if (project != project.getRootProject()) {
-                EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
-                if (parentEF != null) {
-                    log.info("Environment: found parent configuration, merging")
-                    parentConfig.putAll(parentEF.getLocalRawConfig())
-                }
-            }
-            rawLocal = new ConfigObject()
-            rawLocal.putAll(parentConfig.merge(selfConfig))
-        }
-        rawLocal.clone()
+		ConfigObject parentConfig = new ConfigObject()
+		if (project != project.getRootProject()) {
+			EnvironmentFactory parentEF = (EnvironmentFactory) project.getParent().extensions.findByName(EnvironmentPlugin.PLUGIN_NAME)
+			if (parentEF != null) {
+				log.info("Environment: found parent configuration, merging")
+				parentConfig.putAll(parentEF.getLocalRawConfig())
+			}
+		}
+		parentConfig.merge(selfConfig)
     }
 
 
