@@ -1,11 +1,22 @@
-apply plugin: 'maven'
 apply plugin: 'groovy'
-apply plugin: 'eclipse'
+apply plugin: "com.gradle.plugin-publish"
 
-project.group = "org.gradle.api.plugins"
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
+    }
+}
+
+project.group = "com.github.lferenczi.gradle"
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
@@ -13,4 +24,18 @@ dependencies {
     compile localGroovy()
     
     testCompile ("junit:junit:4.12")
+}
+
+pluginBundle {
+    website = 'https://github.com/lferenczi/gradle-env-plugin'
+    vcsUrl = 'https://github.com/lferenczi/gradle-env-plugin'
+    description = 'Multi-dimensional environment handling for Gradle'
+    tags = ['environment', 'config']
+
+    plugins {
+        envPlugin {
+            id = 'com.github.lferenczi.env'
+            displayName = 'Gradle Environment plugin'
+        }
+    }
 }
